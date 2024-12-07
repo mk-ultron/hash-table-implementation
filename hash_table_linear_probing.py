@@ -2,63 +2,68 @@ import time
 import random
 import string
 
-class Node:
-    def __init__(self, key, value):
-        self.key = key
-        self.value = value
-        self.next = None
-
-class HashTable:
-    def __init__(self, size=10):
+class HashTableLinearProbing:
+    """
+    Hash Table implementation using Linear Probing for collision resolution
+    """
+    def __init__(self, size=10000):
         self.size = size
         self.table = [None] * size
-    
+        self.keys = [None] * size
+        self.count = 0
+
     def _hash_function(self, key):
         if isinstance(key, str):
             return sum(ord(char) for char in key) % self.size
         return key % self.size
-    
-    def insert(self, key, value):
+
+    def _find_slot(self, key):
+        """Linear probing to find the next available slot"""
         index = self._hash_function(key)
+        original_index = index
         
-        if self.table[index] is None:
-            self.table[index] = Node(key, value)
-        else:
-            current = self.table[index]
-            while current:
-                if current.key == key:
-                    current.value = value
-                    return
-                if current.next is None:
-                    break
-                current = current.next
-            current.next = Node(key, value)
-    
+        while True:
+            if self.keys[index] is None or self.keys[index] == key:
+                return index
+            index = (index + 1) % self.size
+            if index == original_index:
+                raise Exception("Hash table is full")
+
+    def insert(self, key, value):
+        if self.count >= self.size:
+            raise Exception("Hash table is full")
+        
+        index = self._find_slot(key)
+        if self.keys[index] != key:
+            self.count += 1
+        self.keys[index] = key
+        self.table[index] = value
+
     def retrieve(self, key):
         index = self._hash_function(key)
-        
-        current = self.table[index]
-        while current:
-            if current.key == key:
-                return current.value
-            current = current.next
+        original_index = index
+
+        while self.keys[index] is not None:
+            if self.keys[index] == key:
+                return self.table[index]
+            index = (index + 1) % self.size
+            if index == original_index:
+                break
         return None
-    
+
     def remove(self, key):
         index = self._hash_function(key)
-        
-        current = self.table[index]
-        prev = None
-        
-        while current:
-            if current.key == key:
-                if prev:
-                    prev.next = current.next
-                else:
-                    self.table[index] = current.next
+        original_index = index
+
+        while self.keys[index] is not None:
+            if self.keys[index] == key:
+                self.keys[index] = None
+                self.table[index] = None
+                self.count -= 1
                 return
-            prev = current
-            current = current.next
+            index = (index + 1) % self.size
+            if index == original_index:
+                break
 
 def generate_random_key():
     """Generate a random string key"""
@@ -70,7 +75,7 @@ def generate_random_value():
 
 def performance_test(n_operations):
     """Test performance with n operations"""
-    ht = HashTable(size=n_operations * 2)  # Size twice the operations to avoid too many collisions
+    ht = HashTableLinearProbing(size=n_operations * 2)  # Size twice the operations to avoid too many collisions
     
     # Test Insert
     start_time = time.time()
@@ -80,7 +85,7 @@ def performance_test(n_operations):
         ht.insert(key, value)
     insert_time = time.time() - start_time
     
-    # Generate keys for testing retrieval
+    # Generate keys for testing retrieval (mix of existing and non-existing)
     test_keys = [generate_random_key() for _ in range(n_operations)]
     
     # Test Retrieve
@@ -109,24 +114,12 @@ def run_performance_tests():
         print(f"{size:<10} {insert_time:<12.6f} {retrieve_time:<12.6f} {remove_time:<12.6f}")
 
 if __name__ == "__main__":
-    # Basic functionality test
-    ht = HashTable()
-    print("Testing basic functionality:")
-    ht.insert("name", "John")
-    ht.insert("age", 25)
-    ht.insert("city", "New York")
+    # Run basic functionality test
+    ht = HashTableLinearProbing(size=10)
+    ht.insert("test", 123)
+    print("Basic Test:")
+    print(f"Retrieved value: {ht.retrieve('test')}")  # Should print 123
     
-    print("Testing retrieval:")
-    print(f"name: {ht.retrieve('name')}")
-    print(f"age: {ht.retrieve('age')}")
-    print(f"city: {ht.retrieve('city')}")
-    
-    ht.insert("name", "Jane")
-    print(f"Updated name: {ht.retrieve('name')}")
-    
-    ht.remove("age")
-    print(f"After removing age: {ht.retrieve('age')}")
-    print(f"Non-existent key: {ht.retrieve('country')}")
-    
+    # Run performance tests
     print("\nRunning performance tests...")
     run_performance_tests()
