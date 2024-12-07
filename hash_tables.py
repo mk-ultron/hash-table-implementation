@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 class HashTableBase(ABC):
     """
-    Abstract base class defining the interface for hash table implementations.
+    Abstract base class - defines the interface for hash table implementations.
     This provides the common hash function and defines required methods that
     subclasses have to implement
     """
@@ -265,9 +265,9 @@ def run_basic_tests():
     
     # Test data for basic operations
     test_data = [
-        ("name", "John"),
-        ("age", 25),
-        ("city", "New York")
+        ("name", "Gandalf the Grey"),
+        ("age", 358),
+        ("city", "Ecthelion")
     ]
     
     # Test each implementation
@@ -285,7 +285,7 @@ def run_basic_tests():
             print(f"Retrieved {key}: {result}")
         
         # Test update operation
-        ht.insert("name", "Jane")
+        ht.insert("name", "Gandalf the White")
         print(f"Updated name: {ht.retrieve('name')}")
         
         # Test removal operation
